@@ -9,15 +9,15 @@ import { Label } from '../Components/ui/Label';
 
 function AddContestantPage({ onAddContestant, navigate }) {
   const [name, setName] = useState('');
-  const [batch, setBatch] = useState('');
+  const [description, setdescription] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name || !batch) {
+    if (!name || !description) {
         alert("الرجاء ملء جميع الحقول");
         return;
     }
-    onAddContestant({ name, batch });
+    onAddContestant({ name, description });
     navigate('dashboard');
   };
 
@@ -32,8 +32,8 @@ function AddContestantPage({ onAddContestant, navigate }) {
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: أحمد علي" required />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="batch">اسم الدفعة</Label>
-              <Input id="batch" value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="مثال: دفعة الأمل" required />
+              <Label htmlFor="description">اسم الدفعة</Label>
+              <Input id="description" value={description} onChange={(e) => setdescription(e.target.value)} placeholder="مثال: دفعة الأمل" required />
             </div>
           </CardContent>
           <CardFooter>

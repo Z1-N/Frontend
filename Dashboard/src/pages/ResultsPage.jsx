@@ -4,13 +4,12 @@ import { EnhancedTable } from '../Components/ui/EnhancedTable';
 import { Card } from '../Components/ui/Card';
 import { Input } from '../Components/ui/Input';
 import { Label } from '../Components/ui/Label';
-import { format, parseISO, isWithinInterval } from 'date-fns';
+import { format, parseISO, isWithinInterval, isValid } from 'date-fns';
 
 export function ResultsPage({ contestants }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Define columns for the table
   const columns = useMemo(() => [
     {
       accessorKey: 'contestantName',
@@ -33,27 +32,33 @@ export function ResultsPage({ contestants }) {
     {
       accessorKey: 'date',
       header: 'التاريخ',
-      cell: info => format(parseISO(info.getValue()), 'yyyy/MM/dd'),
+      cell: info => {
+        const date = parseISO(info.getValue());
+        return isValid(date) ? format(date, 'yyyy/MM/dd') : 'تاريخ غير صالح';
+      },
     },
   ], []);
 
-  // Memoize and filter the data
   const filteredData = useMemo(() => {
-    let allPoints = contestants.flatMap(c => 
-      c.pointsHistory.map(p => ({
-        ...p,
+    let allPoints = (contestants || []).flatMap(c => 
+      (c.racerStatrs || []).map(p => ({
         contestantName: c.name,
-        contestantBatch: c.batch
+        contestantBatch: c.description,
+        points: p.number,
+        reason: p.reason,
+        date: p.dateTime
       }))
     );
 
     if (startDate && endDate) {
       const start = parseISO(startDate);
       const end = parseISO(endDate);
-      allPoints = allPoints.filter(p => {
-        const pointDate = parseISO(p.date);
-        return isWithinInterval(pointDate, { start, end });
-      });
+      if (isValid(start) && isValid(end)) {
+        allPoints = allPoints.filter(p => {
+          const pointDate = parseISO(p.date);
+          return isValid(pointDate) && isWithinInterval(pointDate, { start, end });
+        });
+      }
     }
     
     return allPoints;

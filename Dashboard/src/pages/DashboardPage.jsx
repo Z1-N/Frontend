@@ -1,45 +1,40 @@
+// src/pages/DashboardPage.jsx
 import React from 'react';
-import Card from '../Components/ui/Card';
-import CardHeader from '../Components/ui/Card';
-import CardTitle from '../Components/ui/Card';
-import CardDescription from '../Components/ui/Card';
-import CardContent from '../Components/ui/Card';
-import CardFooter from '../Components/ui/Card';
-import {Button} from '../Components/ui/Button';
-import {StarIcon} from '../Components/icons/StarIcon';
-import {AwardIcon} from '../Components/icons/AwardIcon';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../Components/ui/Card';
+import { Button } from '../Components/ui/Button';
+import { AwardDisplay } from '../Components/ui/AwardDisplay';
+import { StarIcon } from '../Components/icons/StarIcon';
+import { AwardIcon } from '../Components/icons/AwardIcon';
 
-
-function DashboardPage({ contestants, navigate }) {
-    const getTotalPoints = (pointsHistory) => {
-        return pointsHistory.reduce((sum, entry) => sum + entry.points, 0);
-    };
+export function DashboardPage({ contestants, navigate }) {
+    // دالة آمنة لعد الأوسمة، تتعامل مع الحالات التي تكون فيها البيانات غير موجودة
+    const countAwards = (accolades = [], type) => accolades.filter(a => a === type).length;
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-6 text-gray-800">المشاركون في البرنامج</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <h2 className="text-4xl font-bold mb-8 text-slate-900">المشاركون في البرنامج</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {contestants.map(c => (
-                    <Card key={c.id} className="hover:shadow-lg transition-shadow">
+                    <Card key={c.id} className="transition-all hover:shadow-lg hover:-translate-y-1">
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <CardTitle>{c.name}</CardTitle>
-                                    <CardDescription>{c.batch}</CardDescription>
+                                    <CardTitle className="text-xl font-bold">{c.name}</CardTitle>
+                                    <CardDescription className="text-md">{c.description}</CardDescription>
                                 </div>
-                                <div className="flex items-center space-x-1 space-x-reverse">
-                                    {c.badges.starOfCreativity && <StarIcon className="w-5 h-5 text-yellow-400" title="نجمة الإبداع" />}
-                                    {c.badges.medalOfParticipation && <AwardIcon className="w-5 h-5 text-green-500" title="وسام المشاركة" />}
-                                    {c.badges.medalOfCreativity && <AwardIcon className="w-5 h-5 text-blue-500" title="وسام الإبداع" />}
+                                <div className="flex items-center space-x-2 space-x-reverse">
+                                    <AwardDisplay icon={<StarIcon />} count={countAwards(c.racerAccolade, 'starOfCreativity')} title="نجمة الإبداع" colorClass="text-yellow-400" />
+                                    <AwardDisplay icon={<AwardIcon />} count={countAwards(c.racerAccolade, 'medalOfParticipation')} title="وسام المشاركة" colorClass="text-green-500" />
+                                    <AwardDisplay icon={<AwardIcon />} count={countAwards(c.racerAccolade, 'medalOfCreativity')} title="وسام الإبداع" colorClass="text-blue-500" />
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-bold text-center text-slate-700">{getTotalPoints(c.pointsHistory)}</p>
-                            <p className="text-sm text-center text-gray-500">نقطة</p>
+                        <CardContent className="text-center">
+                            <p className="text-5xl font-bold text-slate-800">{c.totalOfStart}</p>
+                            <p className="text-md text-slate-500 mt-1">نقطة</p>
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full" onClick={() => navigate('contestantDetails', { id: c.id })}>
+                            <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-lg py-2.5" onClick={() => navigate('contestantDetails', { id: c.id })}>
                                 عرض التفاصيل
                             </Button>
                         </CardFooter>
@@ -49,5 +44,3 @@ function DashboardPage({ contestants, navigate }) {
         </div>
     );
 }
-
-export { DashboardPage };
