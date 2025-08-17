@@ -10,7 +10,7 @@ import { AwardDisplay } from '../Components/ui/AwardDisplay';
 import { StarIcon } from '../Components/icons/StarIcon';
 import { AwardIcon } from '../Components/icons/AwardIcon';
 
-export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, navigate }) {
+export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, navigate , onDeleteContestant}) {
     const [isPointsModalOpen, setPointsModalOpen] = useState(false);
     const [isBadgeModalOpen, setBadgeModalOpen] = useState(false);
     const [points, setPoints] = useState('');
