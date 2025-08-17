@@ -83,6 +83,16 @@ const handleAddPoints = async (racerId, points, reason) => {
     }
   };
 
+    const handleDeleteContestant = async (racerId) => {
+    try {
+      await deleteContestant(racerId);
+      fetchContestants(); // Refresh the contestant list after a successful deletion
+    } catch (err) {
+      alert("حدث خطأ أثناء حذف المتسابق.");
+      console.error(err);
+    }
+  };
+
 
   // دالة معالجة منح وسام: تستخدم دالة addAward من api.js
   const handleAwardBadge = async (racerId, badgeName) => {

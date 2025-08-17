@@ -18,3 +18,5 @@ export const addPoints = (racerId, pointsData) => apiClient.post(`/Racer/${racer
 
 
 export const addAward = (racerId, awardData) => apiClient.post(`/Racer/${racerId}/Accolade`, awardData);
+
+export const deleteContestant = (racerId) => apiClient.delete(`/Racer/${racerId}`);

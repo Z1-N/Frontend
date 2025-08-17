@@ -15,6 +15,7 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
     const [isBadgeModalOpen, setBadgeModalOpen] = useState(false);
     const [points, setPoints] = useState('');
     const [reason, setReason] = useState('');
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
     if (!contestant) {
         return (
@@ -25,7 +26,11 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
             </div>
         );
     }
-    
+    const handleDelete = async () => {
+        await onDeleteContestant(contestant.id);
+        setDeleteModalOpen(false); // Close the dialog
+        navigate('dashboard'); // Navigate back to the main dashboard
+    };
     const countAwards = (accolades = [], type) => accolades.filter(a => a === type).length;
 
     const handleAddPoints = () => {
@@ -54,6 +59,7 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
                 <div className="flex items-center space-x-2 space-x-reverse">
                     <Button variant="outline" onClick={() => setBadgeModalOpen(true)}>منح وسام</Button>
                     <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setPointsModalOpen(true)}>إضافة نقاط</Button>
+                     <Button variant="destructive" onClick={() => setDeleteModalOpen(true)}>حذف</Button>
                 </div>
             </div>
             
@@ -109,6 +115,20 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
                     <Button variant="outline" onClick={() => handleAwardBadge('starOfCreativity')}><StarIcon className="w-5 h-5 ml-2 text-yellow-400" /> نجمة الإبداع</Button>
                     <Button variant="outline" onClick={() => handleAwardBadge('medalOfParticipation')}><AwardIcon className="w-5 h-5 ml-2 text-green-500" /> وسام المشاركة</Button>
                     <Button variant="outline" onClick={() => handleAwardBadge('medalOfCreativity')}><AwardIcon className="w-5 h-5 ml-2 text-blue-500" /> وسام الإبداع</Button>
+                </div>
+            </Dialog>
+            <Dialog isOpen={isDeleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="تأكيد الحذف">
+                <div className="py-4">
+                    <p className="text-lg">
+                        هل أنت متأكد أنك تريد حذف المتسابق <span className="font-bold">{contestant?.name}</span>؟
+                    </p>
+                    <p className="text-sm text-slate-500 mt-2">
+                        سيتم حذف جميع نقاطه وأوسمته بشكل دائم. لا يمكن التراجع عن هذا الإجراء.
+                    </p>
+                </div>
+                <div className="flex justify-end pt-4 space-x-2 space-x-reverse border-t">
+                    <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>إلغاء</Button>
+                    <Button variant="destructive" onClick={handleDelete}>نعم، قم بالحذف</Button>
                 </div>
             </Dialog>
         </div>
