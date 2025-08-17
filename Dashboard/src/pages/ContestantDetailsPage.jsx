@@ -56,7 +56,7 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
                     <h2 className="text-4xl font-bold text-slate-900">{contestant.name}</h2>
                     <p className="text-slate-500 mt-1 text-lg">{contestant.description}</p>
                 </div>
-                <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="flex items-center space-x-8 space-x-reverse">
                     <Button variant="outline" onClick={() => setBadgeModalOpen(true)}>منح وسام</Button>
                     <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setPointsModalOpen(true)}>إضافة نقاط</Button>
                      <Button variant="destructive" onClick={() => setDeleteModalOpen(true)}>حذف</Button>
