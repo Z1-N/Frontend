@@ -15,8 +15,10 @@
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
     "react": "^19.1.1",
+    "react-data-table-component": "^7.6.2",
     "react-dom": "^19.1.1",
-    "tailwindcss": "^4.1.12"
+    "tailwindcss": "^4.1.12",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

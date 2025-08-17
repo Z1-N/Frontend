@@ -9,6 +9,38 @@ const apiClient = axios.create({
   },
 });
 
+// --- JWT Auth scaffolding ---
+let AUTH_TOKEN = null;
+try {
+  if (typeof window !== 'undefined') {
+    const saved = window.localStorage.getItem('authToken');
+    if (saved) AUTH_TOKEN = saved;
+  }
+} catch (_) {}
+
+apiClient.interceptors.request.use((config) => {
+  if (AUTH_TOKEN) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${AUTH_TOKEN}`;
+  }
+  return config;
+});
+
+export const setAuthToken = (token) => {
+  AUTH_TOKEN = token || null;
+  try {
+    if (typeof window !== 'undefined') {
+      if (token) window.localStorage.setItem('authToken', token);
+      else window.localStorage.removeItem('authToken');
+    }
+  } catch (_) {}
+};
+
+export const clearAuthToken = () => setAuthToken(null);
+
+// Login endpoint: POST /api/Auth/Login with { username, password }
+export const login = (username, password) => apiClient.post('/Auth/Login', { username, password });
+
 export const getContestants = () => apiClient.get('/Racer/Details');
 
 export const getContestantDetails = (name) => apiClient.get(`/Racer/Search/${name}`);

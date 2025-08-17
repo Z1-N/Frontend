@@ -6,9 +6,10 @@ import { DashboardPage } from './pages/DashboardPage.jsx';
 import { AddContestantPage } from './pages/AddContestantPage.jsx';
 import { ContestantDetailsPage } from './pages/ContestantDetailsPage.jsx';
 import { ResultsPage } from './pages/ResultsPage.jsx';
+import { PublicLeaderboardPage } from './pages/PublicLeaderboardPage.jsx';
 
 // الخطوة 1: استيراد دوال الـ API من ملف الخدمات
-import { getContestants, addContestant, addPoints, addAward,deleteContestant , getAccolades} from './services/api.js';
+import { getContestants, addContestant, addPoints, addAward, deleteContestant, getAccolades, login, setAuthToken, clearAuthToken } from './services/api.js';
 
 // مكون بسيط لعرض حالة التحميل
 const LoadingSpinner = () => (
@@ -18,13 +19,27 @@ const LoadingSpinner = () => (
 );
 
 export default function App() {
-  const [page, setPage] = useState('login');
+  const [page, setPage] = useState(() => {
+    try { return localStorage.getItem('page') || 'public'; } catch { return 'public'; }
+  });
   const [pageProps, setPageProps] = useState({});
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('isAuthenticated') || 'false'); } catch { return false; }
+  });
+  // Feature flag: toggle to enforce real JWT when ready
+  const [useJwtAuth] = useState(false);
   const [accolades, setAccolades] = useState([])
   const [contestants, setContestants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Normalize starting page for guests
+  useEffect(() => {
+    if (!isAuthenticated && (page === 'login' || page === 'dashboard' || page === 'results' || page === 'contestantDetails' || page === 'addContestant')) {
+      navigate('public');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // useEffect: يتم تشغيله مرة واحدة بعد تسجيل الدخول لجلب البيانات
   useEffect(() => {
@@ -49,9 +64,44 @@ export default function App() {
     }
   };
 
-  const navigate = (newPage, props = {}) => { setPage(newPage); setPageProps(props); };
-  const handleLogin = (targetPage) => { setIsAuthenticated(true); navigate(targetPage); };
-  const handleLogout = () => { setIsAuthenticated(false); setContestants([]); navigate('login'); };
+  const navigate = (newPage, props = {}) => {
+    setPage(newPage);
+    setPageProps(props);
+    try {
+      localStorage.setItem('page', newPage);
+      // Persist a minimal pageProps when needed (e.g., contestantDetails id)
+      if (newPage === 'contestantDetails' && props && props.id) {
+        localStorage.setItem('pageProps', JSON.stringify({ id: props.id }));
+      } else {
+        localStorage.removeItem('pageProps');
+      }
+    } catch {}
+  };
+  const handleLogin = async (targetPage, credentials) => {
+    if (useJwtAuth) {
+      try {
+        const { username, password } = credentials || {};
+        const res = await login(username, password);
+        // Expecting { token: '...' } in response
+        const token = res?.data?.token || res?.data;
+        if (!token) throw new Error('No token returned');
+        setAuthToken(token);
+      } catch (e) {
+        alert('فشل تسجيل الدخول. تحقق من بيانات الاعتماد.');
+        return;
+      }
+    }
+    setIsAuthenticated(true);
+    try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
+    navigate(targetPage);
+  };
+  const handleLogout = () => {
+    clearAuthToken();
+    setIsAuthenticated(false);
+    try { localStorage.removeItem('isAuthenticated'); } catch {}
+    setContestants([]);
+    navigate('public');
+  };
 
   // دالة معالجة إضافة متسابق: تستخدم دالة addContestant من api.js
   const handleAddContestant = async ({ name, batch }) => {
@@ -102,10 +152,10 @@ const handleAddPoints = async (RacerId, points, reason) => {
   };
 
 
-  // دالة معالجة منح وسام: تستخدم دالة addAward من api.js
-const handleAwardBadge = async (racerId, accoladeId) => {
+  // دالة معالجة منح وسام: ترسل سبب المنح (إن وُجد) إلى الـ API
+const handleAwardBadge = async (racerId, accoladeId, reason) => {
     try {
-      await addAward(racerId, accoladeId);
+      await addAward(racerId, accoladeId, reason);
       fetchContestants();
     } catch (err) {
       alert("حدث خطأ أثناء منح الوسام.");
@@ -115,7 +165,11 @@ const handleAwardBadge = async (racerId, accoladeId) => {
 
   // دالة عرض الصفحات: تقوم بتمرير دوال المعالجة كـ props
   const renderPage = () => {
-    if (!isAuthenticated) return <LoginPage onLogin={handleLogin} />;
+    if (!isAuthenticated) {
+      if (page === 'login') return <LoginPage onLogin={handleLogin} />;
+      // Public landing page
+      return <PublicLeaderboardPage onAdminLogin={() => navigate('login')} />;
+    }
     if (isLoading) return <LoadingSpinner />;
     if (error) return <div className="flex items-center justify-center h-screen text-center p-8 text-red-600 bg-red-50">{error}</div>;
 
@@ -124,12 +178,16 @@ const handleAwardBadge = async (racerId, accoladeId) => {
       case 'dashboard': pageComponent = <DashboardPage contestants={contestants} navigate={navigate} />; break;
       case 'addContestant': pageComponent = <AddContestantPage onAddContestant={handleAddContestant} navigate={navigate} />; break;
       case 'contestantDetails': 
-
-        const contestant = contestants.find(c => c.id === pageProps.id); 
+        // Try to recover id from storage if missing
+        let id = pageProps.id;
+        if (!id) {
+          try { id = JSON.parse(localStorage.getItem('pageProps') || '{}')?.id; } catch {}
+        }
+        const contestant = contestants.find(c => c.id === id);
         pageComponent = <ContestantDetailsPage contestant={contestant} onAddPoints={handleAddPoints} onAwardBadge={handleAwardBadge} navigate={navigate} onDeleteContestant={handleDeleteContestant} availableAccolades={accolades} />; 
         break;
       case 'results': pageComponent = <ResultsPage contestants={contestants} />; break;
-      default: pageComponent = <DashboardPage contestants={contestants} navigate={navigate} />;
+  default: pageComponent = <DashboardPage contestants={contestants} navigate={navigate} />;
     }
     
     return <DashboardLayout navigate={navigate} onLogout={handleLogout} currentPage={page}>{pageComponent}</DashboardLayout>;

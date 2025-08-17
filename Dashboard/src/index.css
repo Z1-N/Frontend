@@ -1,3 +1,77 @@
 @import "tailwindcss";
 
+/* Self-hosted Arabic UI font: Janna LT (regular + bold). Add the font files under public/fonts. */
+@font-face {
+	font-family: 'Janna LT';
+	/* Use WOFF2 if available, otherwise fall back to a single TTF file */
+	src: url('/fonts/JannaLT-Regular.woff2') format('woff2'),
+			 url('/fonts/JannaLT.ttf') format('truetype');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; /* Arabic */
+}
+@font-face {
+	font-family: 'Janna LT';
+	/* If you only have one TTF, it will also be used for bold */
+	src: url('/fonts/JannaLT-Bold.woff2') format('woff2'),
+			 url('/fonts/JannaLT.ttf') format('truetype');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF; /* Arabic */
+}
+
+/* Roboto Slab for Latin scripts */
+@font-face {
+	font-family: 'Roboto Slab Local';
+	src: local('Roboto Slab'), local('RobotoSlab');
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+0000-007F, U+0080-00FF, U+0100-024F; /* Basic Latin + Latin-1 + Latin Ext */
+}
+
+/* Global typography: Prefer Roboto Slab for Latin, Janna LT for Arabic */
+:root {
+	font-family: 'Roboto Slab', 'Roboto Slab Local', 'Janna LT', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Kufi Arabic", "Noto Sans Arabic", sans-serif;
+	font-size: 15px; /* slightly smaller base than default */
+	color-scheme: light;
+}
+
+/* Prefer Janna LT for Arabic content explicitly */
+:lang(ar), [lang="ar"] {
+	font-family: 'Janna LT', 'Roboto Slab', "Noto Kufi Arabic", "Noto Sans Arabic", sans-serif;
+}
+
+html, body, #root {
+	height: 100%;
+}
+
+body {
+		margin: 0;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		color: rgb(15 23 42); /* slate-900 */
+		/* Soft diagonal gradient background */
+		background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 35%, #f5f3ff 100%);
+		/* subtle pattern overlay using radial gradient */
+		background-image:
+			radial-gradient(circle at 1px 1px, rgba(99,102,241,0.06) 1px, transparent 0),
+			linear-gradient(135deg, rgba(99,102,241,0.05), rgba(168,85,247,0.05));
+		background-size: 24px 24px, 100% 100%;
+}
+
+/* Make sure form controls use the same font */
+button, input, textarea, select { font: inherit; }
+
+/* Utility tweaks: gentler headings */
+h1 { font-size: 1.875rem; /* ~text-3xl */ }
+h2 { font-size: 1.5rem;   /* ~text-2xl */ }
+h3 { font-size: 1.25rem;  /* ~text-xl  */ }
+
+/* Reduce default spacing for cards */
+.card-tight > .p-6 { padding: 1rem /* 16px */; }
+
+
 
