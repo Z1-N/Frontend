@@ -50,27 +50,33 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                <div>
-                    <h2 className="text-4xl font-bold text-slate-900">{contestant.name}</h2>
-                    <p className="text-slate-500 mt-1 text-lg">{contestant.description}</p>
+        <div className="space-y-10 px-4 py-8 max-w-5xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-6 bg-white rounded-lg shadow p-6">
+                <div className="mb-4 sm:mb-0">
+                    <h2 className="text-4xl font-bold text-slate-900 mb-2">{contestant.name}</h2>
+                    <p className="text-slate-500 text-lg">{contestant.description}</p>
                 </div>
-                <div className="flex items-center space-x-8 space-x-reverse">
-                    <Button variant="outline" onClick={() => setBadgeModalOpen(true)}>منح وسام</Button>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setPointsModalOpen(true)}>إضافة نقاط</Button>
-                     <Button variant="destructive" onClick={() => setDeleteModalOpen(true)}>حذف</Button>
+                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                    <Button variant="outline" className="w-full sm:w-auto px-6 py-2" onClick={() => setBadgeModalOpen(true)}>
+                        منح وسام
+                    </Button>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto px-6 py-2" onClick={() => setPointsModalOpen(true)}>
+                        إضافة نقاط
+                    </Button>
+                    <Button variant="destructive" className="w-full sm:w-auto px-6 py-2" onClick={() => setDeleteModalOpen(true)}>
+                        حذف
+                    </Button>
                 </div>
             </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-1">
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <Card className="lg:col-span-1 p-4">
                     <CardHeader><CardTitle className="text-xl">إجمالي النقاط</CardTitle></CardHeader>
                     <CardContent><p className="text-6xl font-bold text-slate-800">{contestant.totalOfStart}</p></CardContent>
                 </Card>
-                <Card className="lg:col-span-2">
+                <Card className="lg:col-span-2 p-4">
                     <CardHeader><CardTitle className="text-xl">الأوسمة الحاصل عليها</CardTitle></CardHeader>
-                    <CardContent className="flex items-center space-x-6 space-x-reverse">
+                    <CardContent className="flex items-center gap-8 flex-wrap">
                         <AwardDisplay icon={<StarIcon />} count={countAwards(contestant.racerAccolade, 'starOfCreativity')} title="نجمة الإبداع" colorClass="text-yellow-400" />
                         <AwardDisplay icon={<AwardIcon />} count={countAwards(contestant.racerAccolade, 'medalOfParticipation')} title="وسام المشاركة" colorClass="text-green-500" />
                         <AwardDisplay icon={<AwardIcon />} count={countAwards(contestant.racerAccolade, 'medalOfCreativity')} title="وسام الإبداع" colorClass="text-blue-500" />
@@ -79,7 +85,7 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
                 </Card>
             </div>
 
-            <Card>
+            <Card className="p-4">
                 <CardHeader><CardTitle className="text-xl">سجل النقاط</CardTitle></CardHeader>
                 <CardContent>
                     <table className="w-full text-md text-right text-slate-500">
@@ -107,14 +113,14 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2"><Label htmlFor="points">عدد النقاط</Label><Input id="points" type="number" value={points} onChange={e => setPoints(e.target.value)} placeholder="مثال: 10" /></div>
                     <div className="grid gap-2"><Label htmlFor="reason">سبب الإضافة</Label><Input id="reason" value={reason} onChange={e => setReason(e.target.value)} placeholder="مثال: مشاركة فعالة" /></div>
-                    <Button onClick={handleAddPoints} className="w-full mt-2">إضافة</Button>
+                    <Button onClick={handleAddPoints} className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white">إضافة</Button>
                 </div>
             </Dialog>
             <Dialog isOpen={isBadgeModalOpen} onClose={() => setBadgeModalOpen(false)} title="منح وسام">
                  <div className="grid gap-3 py-4">
-                    <Button variant="outline" onClick={() => handleAwardBadge('starOfCreativity')}><StarIcon className="w-5 h-5 ml-2 text-yellow-400" /> نجمة الإبداع</Button>
-                    <Button variant="outline" onClick={() => handleAwardBadge('medalOfParticipation')}><AwardIcon className="w-5 h-5 ml-2 text-green-500" /> وسام المشاركة</Button>
-                    <Button variant="outline" onClick={() => handleAwardBadge('medalOfCreativity')}><AwardIcon className="w-5 h-5 ml-2 text-blue-500" /> وسام الإبداع</Button>
+                    <Button variant="outline" className="w-full flex items-center justify-center gap-2 py-2" onClick={() => handleAwardBadge('starOfCreativity')}><StarIcon className="w-5 h-5 text-yellow-400" /> نجمة الإبداع</Button>
+                    <Button variant="outline" className="w-full flex items-center justify-center gap-2 py-2" onClick={() => handleAwardBadge('medalOfParticipation')}><AwardIcon className="w-5 h-5 text-green-500" /> وسام المشاركة</Button>
+                    <Button variant="outline" className="w-full flex items-center justify-center gap-2 py-2" onClick={() => handleAwardBadge('medalOfCreativity')}><AwardIcon className="w-5 h-5 text-blue-500" /> وسام الإبداع</Button>
                 </div>
             </Dialog>
             <Dialog isOpen={isDeleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="تأكيد الحذف">
@@ -126,9 +132,9 @@ export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, n
                         سيتم حذف جميع نقاطه وأوسمته بشكل دائم. لا يمكن التراجع عن هذا الإجراء.
                     </p>
                 </div>
-                <div className="flex justify-end pt-4 space-x-2 space-x-reverse border-t">
-                    <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>إلغاء</Button>
-                    <Button variant="destructive" onClick={handleDelete}>نعم، قم بالحذف</Button>
+                <div className="flex flex-col sm:flex-row justify-end pt-4 gap-2 border-t">
+                    <Button variant="outline" className="w-full sm:w-auto px-6 py-2" onClick={() => setDeleteModalOpen(false)}>إلغاء</Button>
+                    <Button variant="destructive" className="w-full sm:w-auto px-6 py-2" onClick={handleDelete}>نعم، قم بالحذف</Button>
                 </div>
             </Dialog>
         </div>
