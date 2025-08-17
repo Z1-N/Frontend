@@ -3,14 +3,14 @@
   publish = "dist"
 
 [[redirects]]
-  # SPA fallback: send all paths to index.html
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[[redirects]]
   # API proxy: avoid mixed-content/CORS by proxying to HTTPS backend
   from = "/api/*"
   to = "https://leaderboard.runasp.net/api/:splat"
   status = 200
   force = true
+
+[[redirects]]
+  # SPA fallback: send all non-API paths to index.html
+  from = "/*"
+  to = "/index.html"
+  status = 200
