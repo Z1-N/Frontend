@@ -1,0 +1,17 @@
+[build]
+  base = "Dashboard"
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  # API proxy must come before SPA fallback
+  from = "/api/*"
+  to = "https://leaderboard.runasp.net/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  # SPA fallback for client routing
+  from = "/*"
+  to = "/index.html"
+  status = 200
