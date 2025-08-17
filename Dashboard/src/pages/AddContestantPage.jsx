@@ -33,7 +33,7 @@ function AddContestantPage({ onAddContestant, navigate }) {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="description">اسم الدفعة</Label>
-              <Input id="description" value={description} onChange={(e) => setdescription(e.target.value)} placeholder="مثال: دفعة الأمل" required />
+              <Input id="description" value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="مثال: دفعة الأمل" required />
             </div>
           </CardContent>
           <CardFooter>
