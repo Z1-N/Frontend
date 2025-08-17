@@ -114,11 +114,10 @@ const handleAddPoints = async (racerId, points, reason) => {
     let pageComponent;
     switch (page) {
       case 'dashboard': pageComponent = <DashboardPage contestants={contestants} navigate={navigate} />; break;
-      // 🔽 هنا يتم تمرير دالة المعالجة إلى المكون الفرعي
       case 'addContestant': pageComponent = <AddContestantPage onAddContestant={handleAddContestant} navigate={navigate} />; break;
       case 'contestantDetails': 
+      
         const contestant = contestants.find(c => c.id === pageProps.id); 
-        // 🔽 وهنا أيضًا يتم تمرير دوال المعالجة
         pageComponent = <ContestantDetailsPage contestant={contestant} onAddPoints={handleAddPoints} onAwardBadge={handleAwardBadge} navigate={navigate} />; 
         break;
       case 'results': pageComponent = <ResultsPage contestants={contestants} />; break;
