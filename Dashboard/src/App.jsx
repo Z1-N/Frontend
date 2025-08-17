@@ -70,6 +70,7 @@ const handleAddPoints = async (racerId, points, reason) => {
       // إنشاء كائن البيانات (payload) بالتنسيق الصحيح الذي يتوقعه الخادم
       const payload = {
         number: points,
+        racerId: racerId,
         dateTime: new Date().toISOString(), // إنشاء تاريخ ووقت حالي
         reason: reason
       };
