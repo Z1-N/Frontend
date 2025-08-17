@@ -8,7 +8,7 @@ import { ContestantDetailsPage } from './pages/ContestantDetailsPage.jsx';
 import { ResultsPage } from './pages/ResultsPage.jsx';
 
 // الخطوة 1: استيراد دوال الـ API من ملف الخدمات
-import { getContestants, addContestant, addPoints, addAward } from './services/api.js';
+import { getContestants, addContestant, addPoints, addAward,deleteContestant } from './services/api.js';
 
 // مكون بسيط لعرض حالة التحميل
 const LoadingSpinner = () => (
