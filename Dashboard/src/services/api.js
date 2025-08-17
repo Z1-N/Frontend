@@ -9,14 +9,28 @@ const apiClient = axios.create({
   },
 });
 
-export const getContestants = () => apiClient.get('/Racer');
+export const getContestants = () => apiClient.get('/Racer/Details');
 
-export const addContestant = (contestantData) => apiClient.post('/Racer', contestantData);
+export const getContestantDetails = (name) => apiClient.get(`/Racer/Search/${name}`);
+
+export const addContestant = (contestantData) => apiClient.post('/Racer/', contestantData);
 
 
-export const addPoints = (racerId, pointsData) => apiClient.post(`/Racer/${racerId}/Start`, pointsData);
+export const addPoints = (RacerId, pointsData) => apiClient.post(`/Racer/${RacerId}/Start`, pointsData);
 
 
-export const addAward = (racerId, awardData) => apiClient.post(`/Racer/${racerId}/Accolade`, awardData);
+export const deleteContestant = (RacerId) => apiClient.delete(`/Racer/${RacerId}`);
 
-export const deleteContestant = (racerId) => apiClient.delete(`/Racer/${racerId}`);
+// 🔽 أضف هذه الدالة الجديدة لجلب قائمة الأوسمة
+export const getAccolades = () => apiClient.get('/Accolade');
+
+// 🔽 قم بتحديث هذه الدالة لإرسال البيانات بالهيكل الصحيح
+export const addAward = (racerId, accoladeId, reason) => {
+  const payload = {
+    racerId: racerId,
+    accoladeId: accoladeId,
+    dateTime: new Date().toISOString(),
+    reason: reason || "Granted via dashboard" // استخدام السبب المرسل أو قيمة افتراضية
+  };
+  return apiClient.post(`/Racer/${racerId}/Accolade`, payload);
+};

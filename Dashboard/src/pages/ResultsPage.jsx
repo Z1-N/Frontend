@@ -1,14 +1,40 @@
-// src/pages/ResultsPage.jsx
-import React, { useState, useMemo } from 'react';
+// src/Pages/ResultsPage.jsx
+import React, { useState, useMemo, useEffect } from 'react';
 import { EnhancedTable } from '../Components/ui/EnhancedTable';
 import { Card } from '../Components/ui/Card';
 import { Input } from '../Components/ui/Input';
 import { Label } from '../Components/ui/Label';
 import { format, parseISO, isWithinInterval, isValid } from 'date-fns';
+import { getContestantDetails } from '../services/api'; // 🔽 استيراد دالة جلب التفاصيل
 
 export function ResultsPage({ contestants }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  
+  // 🔽 حالات جديدة لجلب البيانات التفصيلية
+  const [detailedContestants, setDetailedContestants] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 🔽 useEffect لجلب التفاصيل الكاملة لجميع المتسابقين
+  useEffect(() => {
+    const fetchAllDetails = async () => {
+      setIsLoading(true);
+      // استخدام Promise.all لتنفيذ جميع طلبات الـ API بالتوازي
+      const promises = contestants.map(c => getContestantDetails(c.name));
+      const results = await Promise.all(promises);
+      
+      // استخلاص البيانات من كل استجابة (الـ API يرجع مصفوفة لكل طلب)
+      const allDetails = results.map(res => res.data[0]).filter(Boolean);
+      setDetailedContestants(allDetails);
+      setIsLoading(false);
+    };
+
+    if (contestants && contestants.length > 0) {
+      fetchAllDetails();
+    } else {
+        setIsLoading(false);
+    }
+  }, [contestants]);
 
   const columns = useMemo(() => [
     {
@@ -40,8 +66,9 @@ export function ResultsPage({ contestants }) {
   ], []);
 
   const filteredData = useMemo(() => {
-    let allPoints = (contestants || []).flatMap(c => 
-      (c.racerStatrs || []).map(p => ({
+    // 🔽 استخدام البيانات التفصيلية الجديدة
+    let allPoints = (detailedContestants || []).flatMap(c => 
+      (c.startResponse || []).map(p => ({
         contestantName: c.name,
         contestantBatch: c.description,
         points: p.number,
@@ -62,7 +89,7 @@ export function ResultsPage({ contestants }) {
     }
     
     return allPoints;
-  }, [contestants, startDate, endDate]);
+  }, [detailedContestants, startDate, endDate]);
 
   return (
     <div className="space-y-8">
@@ -98,8 +125,12 @@ export function ResultsPage({ contestants }) {
           </div>
         </div>
       </Card>
-
-      <EnhancedTable data={filteredData} columns={columns} />
+      
+      {isLoading ? (
+        <div className="text-center py-8">جاري تحميل سجل النقاط...</div>
+      ) : (
+        <EnhancedTable data={filteredData} columns={columns} />
+      )}
     </div>
   );
 }

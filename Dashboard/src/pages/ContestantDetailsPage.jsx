@@ -1,5 +1,5 @@
-// src/pages/ContestantDetailsPage.jsx
-import React, { useState } from 'react';
+// src/Pages/ContestantDetailsPage.jsx
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '../Components/ui/Card';
 import { Button } from '../Components/ui/Button';
@@ -9,132 +9,218 @@ import { Label } from '../Components/ui/Label';
 import { AwardDisplay } from '../Components/ui/AwardDisplay';
 import { StarIcon } from '../Components/icons/StarIcon';
 import { AwardIcon } from '../Components/icons/AwardIcon';
+import { getContestantDetails } from '../services/api';
+import { EnhancedTable } from '../Components/ui/EnhancedTable'; // 🔽 استيراد الجدول المتقدم
 
-export function ContestantDetailsPage({ contestant, onAddPoints, onAwardBadge, navigate , onDeleteContestant}) {
+const AccoladeIcon = ({ type }) => {
+    switch (type) {
+        case 'starOfCreativity':
+            return <StarIcon className="w-5 h-5 text-red-400" />;
+        case 'starOfParticipation':
+            return <StarIcon className="w-5 h-5 text-yellow-400" />;
+        case 'medalOfCreativity':
+            return <AwardIcon className="w-5 h-5 text-red-400" />;
+        case 'medalOfParticipation':
+            return <AwardIcon className="w-5 h-5 text-yellow-500" />;
+        default:
+            return <AwardIcon className="w-5 h-5 text-slate-400" />;
+    }
+};
+
+export function ContestantDetailsPage({ contestant, availableAccolades, onAddPoints, onAwardBadge, onDeleteContestant, navigate }) {
+    const [details, setDetails] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
     const [isPointsModalOpen, setPointsModalOpen] = useState(false);
     const [isBadgeModalOpen, setBadgeModalOpen] = useState(false);
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+    
     const [points, setPoints] = useState('');
     const [reason, setReason] = useState('');
-    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [awardReason, setAwardReason] = useState('');
 
-    if (!contestant) {
-        return (
-            <div className="text-center p-8">
-                <h2 className="text-2xl font-bold text-slate-700">لم يتم العثور على المتسابق</h2>
-                <p className="text-slate-500 mt-2">قد يكون قد تم حذفه أو أن الرابط غير صحيح.</p>
-                <Button className="mt-6" onClick={() => navigate('dashboard')}>العودة للوحة التحكم</Button>
-            </div>
-        );
-    }
-    const handleDelete = async () => {
-        await onDeleteContestant(contestant.id);
-        setDeleteModalOpen(false); // Close the dialog
-        navigate('dashboard'); // Navigate back to the main dashboard
+    const fetchDetails = useCallback(async () => {
+        if (!contestant?.name) {
+            setIsLoading(false);
+            return;
+        }
+        try {
+            setIsLoading(true);
+            const response = await getContestantDetails(contestant.name);
+            if (response.data && response.data.length > 0) {
+                setDetails(response.data[0]);
+            } else {
+                setError("Contestant details not found.");
+            }
+        } catch (err) {
+            setError("Failed to fetch contestant details.");
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [contestant]);
+
+    useEffect(() => {
+        fetchDetails();
+    }, [fetchDetails]);
+
+    const countAwards = (accolades = [], type) => {
+        return accolades.filter(a => a.name === type).length;
     };
-    const countAwards = (accolades = [], type) => accolades.filter(a => a === type).length;
 
-    const handleAddPoints = () => {
+    const handleAddPoints = async () => {
         const pointsNum = parseInt(points, 10);
         if (pointsNum > 0 && reason) {
-            onAddPoints(contestant.id, pointsNum, reason);
-            setPoints('');
-            setReason('');
-            setPointsModalOpen(false);
+            try {
+                await onAddPoints(contestant.id, pointsNum, reason);
+                await fetchDetails();
+            } catch (err) {
+                alert("Failed to add points.");
+            } finally {
+                setPointsModalOpen(false);
+                setPoints('');
+                setReason('');
+            }
         } else {
-            alert("الرجاء إدخال عدد نقاط صحيح وسبب للإضافة.");
+            alert("Please enter a valid number of points and a reason.");
         }
     };
 
-    const handleAwardBadge = (badgeName) => {
-        onAwardBadge(contestant.id, badgeName);
+    const handleAwardBadge = async (accoladeId) => {
+        try {
+            await onAwardBadge(contestant.id, accoladeId, awardReason);
+            await fetchDetails();
+        } catch (err) {
+            alert("Failed to grant award.");
+        } finally {
+            setBadgeModalOpen(false);
+            setAwardReason('');
+        }
     };
 
+    const handleDelete = async () => {
+        await onDeleteContestant(contestant.id);
+        setDeleteModalOpen(false);
+        navigate('dashboard');
+    };
+
+    const combinedLog = useMemo(() => {
+        if (!details) return [];
+        const pointsLog = (details.startResponse || []).map((entry, index) => ({
+            type: 'point', date: entry.dateTime, value: `+${entry.number}`, reason: entry.reason, key: `point-${entry.id || index}`
+        }));
+        const accoladesLog = (details.accolade || []).map((entry, index) => {
+            const fullAccolade = availableAccolades.find(acc => acc.name === entry.name);
+            return {
+                type: 'accolade', date: entry.dateTime || new Date().toISOString(), value: fullAccolade ? fullAccolade.description : entry.name, reason: entry.reason || 'Granted', key: `accolade-${entry.id || index}`, iconType: entry.name
+            };
+        });
+        const log = [...pointsLog, ...accoladesLog];
+        log.sort((a, b) => new Date(b.date) - new Date(a.date));
+        return log;
+    }, [details, availableAccolades]);
+
+    // 🔽 تعريف الأعمدة للجدول المتقدم
+    const columns = useMemo(() => [
+        {
+            accessorKey: 'value',
+            header: 'Event',
+            cell: ({ row }) => {
+                const entry = row.original;
+                if (entry.type === 'point') {
+                    return <span className="font-bold text-green-600">{entry.value}</span>;
+                }
+                return (
+                    <span className="flex items-center justify-end gap-2">
+                        <span className="font-medium text-slate-800">{entry.value}</span>
+                        <AccoladeIcon type={entry.iconType} />
+                    </span>
+                );
+            }
+        },
+        {
+            accessorKey: 'reason',
+            header: 'Reason',
+        },
+        {
+            accessorKey: 'date',
+            header: 'Date',
+            cell: ({ getValue }) => format(parseISO(getValue()), 'yyyy/MM/dd'),
+        }
+    ], []);
+
+    if (isLoading) return <div className="text-center p-8">Loading Details...</div>;
+    if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
+    if (!contestant || !details) return <div className="text-center p-8"><h2 className="text-2xl font-bold">Contestant Not Found</h2></div>;
+
     return (
-        <div className="space-y-10 px-4 py-8 max-w-5xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-6 bg-white rounded-lg shadow p-6">
-                <div className="mb-4 sm:mb-0">
-                    <h2 className="text-4xl font-bold text-slate-900 mb-2">{contestant.name}</h2>
-                    <p className="text-slate-500 text-lg">{contestant.description}</p>
+        <div className="space-y-8 max-w-6xl mx-auto py-8 px-4">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                <div>
+                    <h2 className="text-4xl font-bold text-slate-900">{details.name}</h2>
+                    <p className="text-slate-500 mt-1 text-lg">{details.description}</p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                    <Button variant="outline" className="w-full sm:w-auto px-6 py-2" onClick={() => setBadgeModalOpen(true)}>
-                        منح وسام
-                    </Button>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto px-6 py-2" onClick={() => setPointsModalOpen(true)}>
-                        إضافة نقاط
-                    </Button>
-                    <Button variant="destructive" className="w-full sm:w-auto px-6 py-2" onClick={() => setDeleteModalOpen(true)}>
-                        حذف
-                    </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => setBadgeModalOpen(true)}>Grant Award</Button>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => setPointsModalOpen(true)}>Add Points</Button>
+                    <Button variant="destructive" onClick={() => setDeleteModalOpen(true)}>Delete</Button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <Card className="lg:col-span-1 p-4">
-                    <CardHeader><CardTitle className="text-xl">إجمالي النقاط</CardTitle></CardHeader>
-                    <CardContent><p className="text-6xl font-bold text-slate-800">{contestant.totalOfStart}</p></CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="md:col-span-1">
+                    <CardHeader><CardTitle className="text-lg font-semibold">Total Points</CardTitle></CardHeader>
+                    <CardContent><p className="text-5xl font-bold text-slate-800">{details.totalOfStars}</p></CardContent>
                 </Card>
-                <Card className="lg:col-span-2 p-4">
-                    <CardHeader><CardTitle className="text-xl">الأوسمة الحاصل عليها</CardTitle></CardHeader>
-                    <CardContent className="flex items-center gap-8 flex-wrap">
-                        <AwardDisplay icon={<StarIcon />} count={countAwards(contestant.racerAccolade, 'starOfCreativity')} title="نجمة الإبداع" colorClass="text-yellow-400" />
-                        <AwardDisplay icon={<AwardIcon />} count={countAwards(contestant.racerAccolade, 'medalOfParticipation')} title="وسام المشاركة" colorClass="text-green-500" />
-                        <AwardDisplay icon={<AwardIcon />} count={countAwards(contestant.racerAccolade, 'medalOfCreativity')} title="وسام الإبداع" colorClass="text-blue-500" />
-                        {(contestant.racerAccolade || []).length === 0 && <p className="text-slate-500">لا يوجد أوسمة بعد.</p>}
+                <Card className="md:col-span-2">
+                    <CardHeader><CardTitle className="text-lg font-semibold">Awards Received</CardTitle></CardHeader>
+                    <CardContent className="flex items-center gap-6 flex-wrap">
+                        <AwardDisplay icon={<StarIcon />} count={countAwards(details.accolade, 'starOfCreativity')} title="Star of Creativity" colorClass="text-red-400" />
+                        <AwardDisplay icon={<StarIcon />} count={countAwards(details.accolade, 'starOfParticipation')} title="Star of Participation" colorClass="text-yellow-400" />
+                        <AwardDisplay icon={<AwardIcon />} count={countAwards(details.accolade, 'medalOfCreativity')} title="Medal of Creativity" colorClass="text-red-400" />
+                        <AwardDisplay icon={<AwardIcon />} count={countAwards(details.accolade, 'medalOfParticipation')} title="Medal of Participation" colorClass="text-yellow-500" />
+                        {(details.accolade || []).length === 0 && <p className="text-slate-500">No awards yet.</p>}
                     </CardContent>
                 </Card>
             </div>
 
-            <Card className="p-4">
-                <CardHeader><CardTitle className="text-xl">سجل النقاط</CardTitle></CardHeader>
-                <CardContent>
-                    <table className="w-full text-md text-right text-slate-500">
-                        <thead className="text-sm text-slate-700 uppercase bg-slate-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3">النقاط</th>
-                                <th scope="col" className="px-6 py-3">السبب</th>
-                                <th scope="col" className="px-6 py-3">التاريخ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(contestant.racerStatrs || []).slice().reverse().map((entry) => (
-                                <tr key={entry.id} className="bg-white border-b border-slate-200">
-                                    <td className="px-6 py-4 font-bold text-green-600">+{entry.number}</td>
-                                    <td className="px-6 py-4 text-slate-800">{entry.reason}</td>
-                                    <td className="px-6 py-4">{format(parseISO(entry.dateTime), 'yyyy/MM/dd')}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </CardContent>
-            </Card>
+            {/* 🔽 استخدام الجدول المتقدم بدلاً من الجدول البسيط */}
+            <EnhancedTable data={combinedLog} columns={columns} />
 
-            <Dialog isOpen={isPointsModalOpen} onClose={() => setPointsModalOpen(false)} title="إضافة نقاط جديدة">
+            <Dialog isOpen={isPointsModalOpen} onClose={() => setPointsModalOpen(false)} title="Add New Points">
                 <div className="grid gap-4 py-4">
-                    <div className="grid gap-2"><Label htmlFor="points">عدد النقاط</Label><Input id="points" type="number" value={points} onChange={e => setPoints(e.target.value)} placeholder="مثال: 10" /></div>
-                    <div className="grid gap-2"><Label htmlFor="reason">سبب الإضافة</Label><Input id="reason" value={reason} onChange={e => setReason(e.target.value)} placeholder="مثال: مشاركة فعالة" /></div>
-                    <Button onClick={handleAddPoints} className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white">إضافة</Button>
+                    <div className="grid gap-2"><Label htmlFor="points">Number of Points</Label><Input id="points" type="number" value={points} onChange={e => setPoints(e.target.value)} placeholder="e.g., 10" /></div>
+                    <div className="grid gap-2"><Label htmlFor="reason">Reason for Awarding</Label><Input id="reason" value={reason} onChange={e => setReason(e.target.value)} placeholder="e.g., Active participation" /></div>
+                    <Button onClick={handleAddPoints} className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white">Add</Button>
                 </div>
             </Dialog>
-            <Dialog isOpen={isBadgeModalOpen} onClose={() => setBadgeModalOpen(false)} title="منح وسام">
-                 <div className="grid gap-3 py-4">
-                    <Button variant="outline" className="w-full flex items-center justify-center gap-2 py-2" onClick={() => handleAwardBadge('starOfCreativity')}><StarIcon className="w-5 h-5 text-yellow-400" /> نجمة الإبداع</Button>
-                    <Button variant="outline" className="w-full flex items-center justify-center gap-2 py-2" onClick={() => handleAwardBadge('medalOfParticipation')}><AwardIcon className="w-5 h-5 text-green-500" /> وسام المشاركة</Button>
-                    <Button variant="outline" className="w-full flex items-center justify-center gap-2 py-2" onClick={() => handleAwardBadge('medalOfCreativity')}><AwardIcon className="w-5 h-5 text-blue-500" /> وسام الإبداع</Button>
+
+            <Dialog isOpen={isBadgeModalOpen} onClose={() => setBadgeModalOpen(false)} title="Grant an Award">
+                 <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="awardReason">Reason (Optional)</Label>
+                        <Input id="awardReason" value={awardReason} onChange={e => setAwardReason(e.target.value)} placeholder="e.g., For his great initiative" />
+                    </div>
+                    <div className="border-t pt-4 mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {(availableAccolades || []).map(acc => (
+                            <Button key={acc.id} variant="outline" onClick={() => handleAwardBadge(acc.id)}>
+                                {acc.description || acc.name}
+                            </Button>
+                        ))}
+                         {(availableAccolades || []).length === 0 && <p className="text-slate-500 col-span-2 text-center">No accolades available.</p>}
+                    </div>
                 </div>
             </Dialog>
-            <Dialog isOpen={isDeleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="تأكيد الحذف">
+
+            <Dialog isOpen={isDeleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="Confirm Deletion">
                 <div className="py-4">
-                    <p className="text-lg">
-                        هل أنت متأكد أنك تريد حذف المتسابق <span className="font-bold">{contestant?.name}</span>؟
-                    </p>
-                    <p className="text-sm text-slate-500 mt-2">
-                        سيتم حذف جميع نقاطه وأوسمته بشكل دائم. لا يمكن التراجع عن هذا الإجراء.
-                    </p>
+                    <p className="text-lg">Are you sure you want to delete <span className="font-bold">{contestant?.name}</span>?</p>
+                    <p className="text-sm text-slate-500 mt-2">All their points and awards will be permanently deleted. This action cannot be undone.</p>
                 </div>
-                <div className="flex flex-col sm:flex-row justify-end pt-4 gap-2 border-t">
-                    <Button variant="outline" className="w-full sm:w-auto px-6 py-2" onClick={() => setDeleteModalOpen(false)}>إلغاء</Button>
-                    <Button variant="destructive" className="w-full sm:w-auto px-6 py-2" onClick={handleDelete}>نعم، قم بالحذف</Button>
+                <div className="flex justify-end pt-4 gap-2 border-t">
+                    <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleDelete}>Yes, Delete</Button>
                 </div>
             </Dialog>
         </div>

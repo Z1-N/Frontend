@@ -8,7 +8,7 @@ import { ContestantDetailsPage } from './pages/ContestantDetailsPage.jsx';
 import { ResultsPage } from './pages/ResultsPage.jsx';
 
 // الخطوة 1: استيراد دوال الـ API من ملف الخدمات
-import { getContestants, addContestant, addPoints, addAward,deleteContestant } from './services/api.js';
+import { getContestants, addContestant, addPoints, addAward,deleteContestant , getAccolades} from './services/api.js';
 
 // مكون بسيط لعرض حالة التحميل
 const LoadingSpinner = () => (
@@ -21,7 +21,7 @@ export default function App() {
   const [page, setPage] = useState('login');
   const [pageProps, setPageProps] = useState({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+  const [accolades, setAccolades] = useState([])
   const [contestants, setContestants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -30,6 +30,7 @@ export default function App() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchContestants();
+      fetchAccolades();
     }
   }, [isAuthenticated]);
 
@@ -63,19 +64,26 @@ export default function App() {
         console.error(err);
     }
   };
-
+  const fetchAccolades = async () => {
+    try {
+      const response = await getAccolades();
+      setAccolades(response.data || []);
+    } catch (err) {
+      console.error("Failed to fetch accolades:", err);
+    }
+  };
   // دالة معالجة إضافة نقاط: تستخدم دالة addPoints من api.js
-const handleAddPoints = async (racerId, points, reason) => {
+const handleAddPoints = async (RacerId, points, reason) => {
     try {
       // إنشاء كائن البيانات (payload) بالتنسيق الصحيح الذي يتوقعه الخادم
       const payload = {
         number: points,
-        racerId: racerId,
+        RacerId: RacerId,
         dateTime: new Date().toISOString(), // إنشاء تاريخ ووقت حالي
         reason: reason
       };
       
-      await addPoints(racerId, payload); // إرسال البيانات المحدثة
+      await addPoints(RacerId, payload); // إرسال البيانات المحدثة
       fetchContestants();
     } catch (err) {
       alert("حدث خطأ أثناء إضافة النقاط.");
@@ -83,9 +91,9 @@ const handleAddPoints = async (racerId, points, reason) => {
     }
   };
 
-    const handleDeleteContestant = async (racerId) => {
+    const handleDeleteContestant = async (RacerId) => {
     try {
-      await deleteContestant(racerId);
+      await deleteContestant(RacerId);
       fetchContestants(); // Refresh the contestant list after a successful deletion
     } catch (err) {
       alert("حدث خطأ أثناء حذف المتسابق.");
@@ -95,9 +103,9 @@ const handleAddPoints = async (racerId, points, reason) => {
 
 
   // دالة معالجة منح وسام: تستخدم دالة addAward من api.js
-  const handleAwardBadge = async (racerId, badgeName) => {
+const handleAwardBadge = async (racerId, accoladeId) => {
     try {
-      await addAward(racerId, { accolade: badgeName }); // <-- استخدام دالة الـ API
+      await addAward(racerId, accoladeId);
       fetchContestants();
     } catch (err) {
       alert("حدث خطأ أثناء منح الوسام.");
@@ -118,7 +126,7 @@ const handleAddPoints = async (racerId, points, reason) => {
       case 'contestantDetails': 
 
         const contestant = contestants.find(c => c.id === pageProps.id); 
-        pageComponent = <ContestantDetailsPage contestant={contestant} onAddPoints={handleAddPoints} onAwardBadge={handleAwardBadge} navigate={navigate} onDeleteContestant={handleDeleteContestant} />; 
+        pageComponent = <ContestantDetailsPage contestant={contestant} onAddPoints={handleAddPoints} onAwardBadge={handleAwardBadge} navigate={navigate} onDeleteContestant={handleDeleteContestant} availableAccolades={accolades} />; 
         break;
       case 'results': pageComponent = <ResultsPage contestants={contestants} />; break;
       default: pageComponent = <DashboardPage contestants={contestants} navigate={navigate} />;

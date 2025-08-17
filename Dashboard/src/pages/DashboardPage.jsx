@@ -23,14 +23,14 @@ export function DashboardPage({ contestants, navigate }) {
                                     <CardDescription className="text-md">{c.description}</CardDescription>
                                 </div>
                                 <div className="flex items-center space-x-2 space-x-reverse">
-                                    <AwardDisplay icon={<StarIcon />} count={countAwards(c.racerAccolade, 'starOfCreativity')} title="نجمة الإبداع" colorClass="text-yellow-400" />
-                                    <AwardDisplay icon={<AwardIcon />} count={countAwards(c.racerAccolade, 'medalOfParticipation')} title="وسام المشاركة" colorClass="text-green-500" />
-                                    <AwardDisplay icon={<AwardIcon />} count={countAwards(c.racerAccolade, 'medalOfCreativity')} title="وسام الإبداع" colorClass="text-blue-500" />
+                                    <AwardDisplay icon={<StarIcon />} count={countAwards(c.accolade, 'starOfCreativity')} title="نجمة الإبداع" colorClass="text-yellow-400" />
+                                    <AwardDisplay icon={<AwardIcon />} count={countAwards(c.accolade, 'medalOfParticipation')} title="وسام المشاركة" colorClass="text-green-500" />
+                                    <AwardDisplay icon={<AwardIcon />} count={countAwards(c.accolade, 'medalOfCreativity')} title="وسام الإبداع" colorClass="text-blue-500" />
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <p className="text-5xl font-bold text-slate-800">{c.totalOfStart}</p>
+                            <p className="text-5xl font-bold text-slate-800">{c.totalOfStars}</p>
                             <p className="text-md text-slate-500 mt-1">نقطة</p>
                         </CardContent>
                         <CardFooter>
