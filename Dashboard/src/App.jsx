@@ -65,15 +65,24 @@ export default function App() {
   };
 
   // دالة معالجة إضافة نقاط: تستخدم دالة addPoints من api.js
-  const handleAddPoints = async (racerId, points, reason) => {
+const handleAddPoints = async (racerId, points, reason) => {
     try {
-      await addPoints(racerId, { number: points, reason }); // <-- استخدام دالة الـ API
+      // إنشاء كائن البيانات (payload) بالتنسيق الصحيح الذي يتوقعه الخادم
+      const payload = {
+        number: points,
+        racerId: racerId,
+        dateTime: new Date().toISOString(), // إنشاء تاريخ ووقت حالي
+        reason: reason
+      };
+      
+      await addPoints(racerId, payload); // إرسال البيانات المحدثة
       fetchContestants();
     } catch (err) {
       alert("حدث خطأ أثناء إضافة النقاط.");
       console.error(err);
     }
   };
+
 
   // دالة معالجة منح وسام: تستخدم دالة addAward من api.js
   const handleAwardBadge = async (racerId, badgeName) => {
