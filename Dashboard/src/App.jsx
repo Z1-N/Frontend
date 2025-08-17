@@ -116,9 +116,9 @@ const handleAddPoints = async (racerId, points, reason) => {
       case 'dashboard': pageComponent = <DashboardPage contestants={contestants} navigate={navigate} />; break;
       case 'addContestant': pageComponent = <AddContestantPage onAddContestant={handleAddContestant} navigate={navigate} />; break;
       case 'contestantDetails': 
-      
+
         const contestant = contestants.find(c => c.id === pageProps.id); 
-        pageComponent = <ContestantDetailsPage contestant={contestant} onAddPoints={handleAddPoints} onAwardBadge={handleAwardBadge} navigate={navigate} />; 
+        pageComponent = <ContestantDetailsPage contestant={contestant} onAddPoints={handleAddPoints} onAwardBadge={handleAwardBadge} navigate={navigate} onDeleteContestant={handleDeleteContestant} />; 
         break;
       case 'results': pageComponent = <ResultsPage contestants={contestants} />; break;
       default: pageComponent = <DashboardPage contestants={contestants} navigate={navigate} />;
