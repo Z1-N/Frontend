@@ -9,15 +9,15 @@ import { Label } from '../Components/ui/Label';
 
 function AddContestantPage({ onAddContestant, navigate }) {
   const [name, setName] = useState('');
-  const [description, setdescription] = useState('');
+  const [batch, setBatch] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name || !description) {
+    if (!name || !batch) {
         alert("الرجاء ملء جميع الحقول");
         return;
     }
-    onAddContestant({ name, description });
+    onAddContestant({ name, batch });
     navigate('dashboard');
   };
 
