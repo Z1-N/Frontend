@@ -1,21 +1,11 @@
 // src/services/api.js
 import axios from 'axios';
 
-// Resolve base URL to avoid mixed-content under HTTPS
-const envBase = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE;
-let resolvedBase = envBase || null;
-if (!resolvedBase) {
-  const isBrowser = typeof window !== 'undefined';
-  const isHttps = isBrowser && window.location && window.location.protocol === 'https:';
-  // On HTTPS (e.g., Cloudflare Pages), go through same-origin function proxy at /api
-  // Else fallback to the direct backend for local/dev
-  resolvedBase = isHttps ? '/api' : 'http://leaderboard.runasp.net/api';
-}
-
 const apiClient = axios.create({
-  baseURL: resolvedBase,
+  baseURL: 'http://leaderboard.runasp.net/api',
   headers: {
     'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
   },
 });
 
