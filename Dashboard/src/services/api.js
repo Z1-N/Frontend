@@ -2,10 +2,10 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://leaderboard.runasp.net/api',
+  // Use HTTPS to avoid mixed content on HTTPS hosts (e.g., GitHub Pages)
+  baseURL: 'https://leaderboard.runasp.net/api',
   headers: {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
   },
 });
 
