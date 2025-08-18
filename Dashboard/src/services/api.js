@@ -1,21 +1,11 @@
 // src/services/api.js
 import axios from 'axios';
 
-// Prefer a configurable API base so we can point to a proxy when needed (e.g., on GitHub Pages)
-const FALLBACK_BASE = 'https://leaderboard.runasp.net/api';
-// Read from Vite env if provided at build time
-const CONFIG_BASE = (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_API_BASE) || '';
-const BASE_URL = CONFIG_BASE || FALLBACK_BASE;
-
-if (typeof window !== 'undefined' && window.location && /github\.io$/i.test(window.location.host) && !CONFIG_BASE) {
-  // Helpful console hint when running on GitHub Pages without a proxy configured
-  console.warn('[API] Running on GitHub Pages without VITE_API_BASE. Backend must allow CORS on https origins or use a proxy. Using fallback:', FALLBACK_BASE);
-}
-
 const apiClient = axios.create({
-  baseURL: BASE_URL,
+  baseURL: 'http://leaderboard.runasp.net/api',
   headers: {
     'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
   },
 });
 
