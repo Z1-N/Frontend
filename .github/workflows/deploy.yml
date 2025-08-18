@@ -36,6 +36,8 @@ jobs:
         working-directory: Dashboard
         env:
           VITE_BASE: /Frontend/
+          # Optionally set VITE_API_BASE via repository Variables/Secrets to point to an HTTPS proxy (e.g., https://<user>.github.io/Frontend/api)
+          # VITE_API_BASE: ${{ vars.VITE_API_BASE }}
         run: npm run build
 
       - name: Create SPA 404.html
