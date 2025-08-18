@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <meta http-equiv="refresh" content="0; url=./index.html" />
+    <link rel="canonical" href="./index.html" />
+  </head>
+  <body>
+    <p>Redirecting to <a href="./index.html">index.html</a>…</p>
+    <script>
+      // GitHub Pages SPA redirect: keep path after base
+      (function() {
+        var pathname = location.pathname.replace(/\/[^/]*$/, '/');
+        if (!location.pathname.endsWith('/index.html')) {
+          location.replace(pathname);
+        }
+      })();
+    </script>
+  </body>
+</html>
